@@ -8,30 +8,24 @@ Reveal Codes Sentinel is a Kiro Crew app that re-checks court filings exported b
 
 ## How it works
 
-At install time the app clones the Reveal Codes repository into `vendor/` and pins it to one commit, installing only the packages the sweep needs. The sweep CLI (`pnpm sentinel sweep <dir> --json <file>`) reads the Provenance Appendix in each exported .docx and re-verifies every citation and quotation against CourtListener. The `sentinel` agent runs that command over the folder named in `data/config.json`, then uses the `sentinel-report` skill to write the notice from the Markdown report. The `nightly-sweep` job runs the agent at 06:00 every day; it is registered paused, so nothing runs until you resume it.
+When you enable the app it clones the Reveal Codes repository into `vendor/` and pins it to one commit, installing only the packages the sweep needs. The sweep CLI (`pnpm sentinel sweep <dir> --json <file>`) reads the Provenance Appendix in each exported .docx and re-verifies every citation and quotation against CourtListener. The `sentinel` agent runs that command over the folder named in `data/config.json`, then uses the `sentinel-report` skill to write the notice from the Markdown report. The `nightly-sweep` job runs the agent at 06:00 every day; it is registered paused, so nothing runs until you resume it.
 
 ## Install
 
-1. In Crew desktop or the CLI, open Discover → Manage App Sources → Install from Path and point it at this folder. Or use the API:
-
-   ```bash
-   curl -X POST http://localhost:5476/api/apps/install \
-     -H 'Content-Type: application/json' \
-     -d '{"source": "/path/to/reveal-codes-sentinel"}'
-   curl -X POST http://localhost:5476/api/apps/reveal-codes-sentinel/enable
-   ```
-
-2. Enable the app (the second call above does this).
-3. Create the config. Replace the folder with the one that holds your exported filings:
+1. Run `kirocrew app install /path/to/reveal-codes-sentinel`, or install from the folder in Library in the desktop app.
+2. In Library choose Enable, then "Trust this app and enable". Crew blocks every third-party app until it is trusted. Trust is per app and can be withdrawn in Settings → Security → Third-party apps.
+3. Enabling runs `scripts/install.sh`, which clones reveal-codes at the pinned commit into `vendor/` and installs its dependencies. The first enable can take a few minutes.
+4. Create the config at `~/.kiro/crew/apps/reveal-codes-sentinel/data/config.json`. Replace the folder with the one that holds your exported filings:
 
    ```bash
    mkdir -p ~/.kiro/crew/apps/reveal-codes-sentinel/data
    printf '{ "filings": "%s" }\n' "$HOME/Filings" > ~/.kiro/crew/apps/reveal-codes-sentinel/data/config.json
    ```
 
-4. In Schedule, resume `nightly-sweep`, then choose Run now to check it.
+5. `kirocrew cron list` shows `reveal-codes-sentinel/nightly-sweep` paused. Resume it in Schedule, or run it once with `kirocrew cron trigger <job-id>`.
+6. Approvals: in Normal mode the run stops and asks you to approve the sweep command under Notifications. To let the nightly job run unattended, run `kirocrew cron update <job-id> --approval-mode auto`. This approves one thing: the `pnpm ... sentinel sweep` command, which reads the filings folder and writes two report files (`last-sweep.json` and `last-sweep.md`) in the app's `data/` folder.
 
-The job runs in Crew's default timezone.
+The cron entry leaves timezone empty, so 06:00 is in the gateway's timezone.
 
 ## Live mode
 
@@ -81,15 +75,15 @@ reply-brief.docx: The item at line 9 could not be re-checked this time. Try agai
 - Files must be Reveal Codes exports. Other .docx files are reported as unreadable.
 - In fixtures mode, a citation outside the recorded set reads as not found.
 - A job that fires while the Crew gateway is down is missed, not replayed.
+- Tested on Kiro Crew 0.12.0 on macOS.
 
 ## Fields left out
 
 This app uses only fields documented at kiro.dev/docs/crew. Some things have no documented field, so they are left out:
 
-- No per-job timezone in the manifest cron entry. Documented timezone control is a CLI option, so the job uses Crew's default timezone.
 - No per-job timeout in the manifest cron entry. The job uses Crew's default.
 - No typed setting for the filings folder. `setup.configSchema` is `{}`, and the folder is set in `data/config.json`.
 - The docs describe `repo` as a repository name; this manifest sets it to the full GitHub URL as the project asked.
-- The agent `tools` entry `@kirocrew-core` is not spelled out in the pages checked; the docs list `kirocrew-core` as the built-in MCP server.
+- The cron entry leaves timezone empty, so 06:00 is in the gateway's timezone.
 
 Built with Kiro for Kiroween 2026; the sweep itself and its tests live in the reveal-codes repository.

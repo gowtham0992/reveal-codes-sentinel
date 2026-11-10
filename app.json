@@ -1,21 +1,31 @@
 {
   "name": "reveal-codes-sentinel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Reveal Codes Sentinel",
   "description": "Schedules a nightly re-check of Reveal Codes court filings against CourtListener and reports citation, quotation and provenance drift in plain language.",
   "author": "gowtham0992",
   "license": "Apache-2.0",
   "repo": "https://github.com/gowtham0992/reveal-codes-sentinel",
-  "tags": ["legal", "verification", "citations", "provenance"],
-  "agents": ["agents/sentinel.json"],
-  "skills": ["skills/sentinel-report"],
+  "tags": [
+    "legal",
+    "verification",
+    "citations",
+    "provenance"
+  ],
+  "agents": [
+    "agents/sentinel.json"
+  ],
+  "skills": [
+    "skills/sentinel-report"
+  ],
   "crons": [
     {
       "name": "nightly-sweep",
       "cron_expr": "0 6 * * *",
       "agent": "sentinel",
       "enabled": false,
-      "message": "Run the Reveal Codes sentinel sweep over the configured filings folder and report any drift."
+      "message": "Run the Reveal Codes sentinel sweep over the configured filings folder and report any drift.",
+      "persistent_session": false
     }
   ],
   "permissions": {
@@ -24,11 +34,16 @@
     "storage": true
   },
   "dependencies": {
-    "commands": ["git", "node", "pnpm"]
+    "commands": [
+      "git",
+      "node",
+      "pnpm"
+    ]
   },
   "setup": {
     "onInstall": "bash scripts/install.sh",
-    "onUpdate": "bash scripts/install.sh",
+    "onEnable": "bash scripts/install.sh",
+    "onEnableTimeout": 300,
     "onUninstall": "rm -rf vendor",
     "configSchema": {}
   }

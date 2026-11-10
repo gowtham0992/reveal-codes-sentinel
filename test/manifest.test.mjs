@@ -55,3 +55,21 @@ test("scripts/install.sh is executable with the expected header", () => {
   assert.equal(lines[0], "#!/usr/bin/env bash");
   assert.ok(lines.includes("set -euo pipefail"));
 });
+
+test("setup vendors on enable, not on update", () => {
+  assert.equal(manifest.setup.onEnable, "bash scripts/install.sh");
+  assert.equal(manifest.setup.onEnableTimeout, 300);
+  assert.ok(!("onUpdate" in manifest.setup));
+});
+
+test("the nightly cron starts a fresh session each run", () => {
+  for (const cron of manifest.crons) {
+    assert.equal(cron.persistent_session, false, cron.name);
+  }
+});
+
+test("the sentinel agent has only the shell and file tools and reads the skill", () => {
+  const agent = JSON.parse(readFileSync(join(root, "agents", "sentinel.json"), "utf8"));
+  assert.deepEqual(agent.tools, ["execute_bash", "fs_read"]);
+  assert.ok(agent.prompt.includes("skills/sentinel-report/SKILL.md"));
+});

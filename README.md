@@ -87,3 +87,7 @@ This app uses only fields documented at kiro.dev/docs/crew. Some things have no 
 - The cron entry leaves timezone empty, so 06:00 is in the gateway's timezone.
 
 Built with Kiro for Kiroween 2026; the sweep itself and its tests live in the reveal-codes repository.
+
+## Licence
+
+Apache-2.0. Copyright 2026 Gowtham Sarveswaran. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
